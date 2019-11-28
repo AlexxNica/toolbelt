@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Refactor
+- Delete legacy publish and link files
+
 ## [2.78.2] - 2019-11-27
 
 ### Fixed
