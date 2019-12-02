@@ -1,7 +1,7 @@
 import { lstat, readdir, realpath, Stats } from 'fs-extra'
 import * as glob from 'globby'
 import { dirname, join } from 'path'
-import { partition, unnest, values } from 'ramda'
+import { partition, unnest } from 'ramda'
 import log from '../../logger'
 
 const isScopedDirOrLink = (path: string, stats: Stats) => {
@@ -30,7 +30,7 @@ export class YarnLinkedModulesConfig {
   }
 
   get linkedDepsDirs() {
-      return values(this.metadata)
+    return Object.values(this.metadata)
   }
 
   public async init() {
