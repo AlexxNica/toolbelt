@@ -12,9 +12,9 @@ const isLink = (_: string, stats: Stats) => {
   return stats != null && stats.isSymbolicLink()
 }
 
-export class YarnLinkedModulesConfig {
-  public static async getConfig(projectSrc: string) {
-    const conf = new YarnLinkedModulesConfig(projectSrc)
+export class YarnSymlinkedModulesConfig {
+  public static async createConfig(projectSrc: string) {
+    const conf = new YarnSymlinkedModulesConfig(projectSrc)
     await conf.init()
     return conf
   }
@@ -29,8 +29,13 @@ export class YarnLinkedModulesConfig {
     return this._metadata
   }
 
-  get linkedDepsDirs() {
-    return Object.values(this.metadata)
+  get symlinkedDependencies() {
+    return Object.keys(this.metadata).map((moduleName: string) => {
+      return {
+        moduleName,
+        path: this.metadata[moduleName],
+      }
+    })
   }
 
   public async init() {

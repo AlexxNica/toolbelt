@@ -2,18 +2,19 @@ import { Builder } from '@vtex/api'
 import * as retry from 'async-retry'
 import * as bluebird from 'bluebird'
 import chalk from 'chalk'
-import { concat, map, prop, toPairs } from 'ramda'
+import { concat, map, prop } from 'ramda'
 import { createClients } from '../../clients'
 import { getAccount, getEnvironment, getWorkspace } from '../../conf'
 import { CommandError } from '../../errors'
 import { getSavedOrMostAvailableHost } from '../../host'
+import { YarnFilesManager } from '../../lib/files/YarnFilesManager'
 import { ManifestEditor } from '../../lib/manifest'
 import { toAppLocator } from '../../locator'
 import log from '../../logger'
 import { getAppRoot } from '../../manifest'
 import { listenBuild } from '../build'
 import { fixPinnedDependencies, runYarnIfPathExists } from '../utils'
-import { createLinkConfig, getLinkedFiles, listLocalFiles } from './file'
+import { listLocalFiles } from './file'
 import { pathToFileObject, validateAppAction } from './utils'
 
 const root = getAppRoot()
@@ -29,30 +30,18 @@ const RETRY_OPTS_TEST = {
 const performTest = async (
   appId: string,
   builder: Builder,
-  extraData: { linkConfig: LinkConfig },
+  extraData: { yarnFilesManager: YarnFilesManager },
   unsafe: boolean
 ): Promise<void> => {
-  const linkConfig = await createLinkConfig(root)
-
-  extraData.linkConfig = linkConfig
-
-  const usedDeps = toPairs(linkConfig.metadata)
-  if (usedDeps.length) {
-    const plural = usedDeps.length > 1
-    log.info(`The following local dependenc${plural ? 'ies are' : 'y is'} linked to your app:`)
-    usedDeps.forEach(([dep, path]) => log.info(`${dep} (from: ${path})`))
-    log.info(
-      `If you don\'t want ${plural ? 'them' : 'it'} to be used by your vtex app, please unlink ${
-        plural ? 'them' : 'it'
-      }`
-    )
-  }
+  const yarnFilesManager = await YarnFilesManager.createFilesManager(root)
+  extraData.yarnFilesManager = yarnFilesManager
+  yarnFilesManager.logSymlinkedDependencies()
 
   const testApp = async (bail: any, tryCount: number) => {
     const test = true
     const [localFiles, linkedFiles] = await Promise.all([
       listLocalFiles(root, test).then(paths => map(pathToFileObject(root), paths)),
-      getLinkedFiles(linkConfig),
+      yarnFilesManager.getYarnLinkedFiles(),
     ])
     const filesWithContent = concat(localFiles, linkedFiles) as BatchStream[]
 

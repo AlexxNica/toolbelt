@@ -7,12 +7,13 @@ import * as debounce from 'debounce'
 import { readFileSync } from 'fs'
 import * as moment from 'moment'
 import { join, resolve as resolvePath, sep } from 'path'
-import { compose, concat, intersection, isEmpty, keys, map, not, pipe, prop, toPairs } from 'ramda'
+import { compose, concat, intersection, isEmpty, keys, map, not, pipe, prop } from 'ramda'
 import { createInterface } from 'readline'
 import { createClients } from '../../clients'
 import { getAccount, getEnvironment, getWorkspace } from '../../conf'
 import { CommandError } from '../../errors'
 import { getSavedOrMostAvailableHost } from '../../host'
+import { YarnFilesManager } from '../../lib/files/YarnFilesManager'
 import { ManifestEditor } from '../../lib/manifest'
 import { toAppLocator } from '../../locator'
 import log from '../../logger'
@@ -21,7 +22,7 @@ import { listenBuild } from '../build'
 import { default as setup } from '../setup'
 import { fixPinnedDependencies, formatNano, runYarnIfPathExists } from '../utils'
 import startDebuggerTunnel from './debugger'
-import { createLinkConfig, getIgnoredPaths, getLinkedDepsDirs, getLinkedFiles, listLocalFiles } from './file'
+import { getIgnoredPaths, listLocalFiles } from './file'
 import { checkBuilderHubMessage, pathToFileObject, showBuilderHubMessage, validateAppAction } from './utils'
 
 const root = getAppRoot()
@@ -56,7 +57,7 @@ const warnAndLinkFromStart = (
   appId: string,
   builder: Builder,
   unsafe: boolean,
-  extraData: { linkConfig: LinkConfig } = { linkConfig: null }
+  extraData: { yarnFilesManager: YarnFilesManager } = { yarnFilesManager: null }
 ) => {
   log.warn('Initial link requested by builder')
   performInitialLink(appId, builder, extraData, unsafe)
@@ -66,7 +67,7 @@ const warnAndLinkFromStart = (
 const watchAndSendChanges = async (
   appId: string,
   builder: Builder,
-  extraData: { linkConfig: LinkConfig },
+  { yarnFilesManager }: { yarnFilesManager: YarnFilesManager },
   unsafe: boolean
 ): Promise<any> => {
   const changeQueue: Change[] = []
@@ -74,13 +75,13 @@ const watchAndSendChanges = async (
   const onInitialLinkRequired = e => {
     const data = e.response && e.response.data
     if (data && data.code && data.code === 'initial_link_required') {
-      return warnAndLinkFromStart(appId, builder, unsafe, extraData)
+      return warnAndLinkFromStart(appId, builder, unsafe, { yarnFilesManager })
     }
     throw e
   }
 
   const defaultPatterns = ['*/**', 'manifest.json', 'policies.json']
-  const linkedDepsPatterns = map(path => join(path, '**'), getLinkedDepsDirs(extraData.linkConfig))
+  const linkedDepsPatterns = map(path => join(path, '**'), yarnFilesManager.symlinkedDepsDirs)
 
   const queueChange = (path: string, remove?: boolean) => {
     console.log(`${chalk.gray(moment().format('HH:mm:ss:SSS'))} - ${remove ? DELETE_SIGN : UPDATE_SIGN} ${path}`)
@@ -99,20 +100,8 @@ const watchAndSendChanges = async (
     path: pathModifier(path),
   })
 
-  const moduleAndMetadata = toPairs(extraData.linkConfig.metadata)
-
-  const mapLocalToBuiderPath = path => {
-    const abs = resolvePath(root, path)
-    for (const [module, modulePath] of moduleAndMetadata as any) {
-      if (abs.startsWith(modulePath)) {
-        return abs.replace(modulePath, join('.linked_deps', module))
-      }
-    }
-    return path
-  }
-
   const pathModifier = pipe(
-    mapLocalToBuiderPath,
+    yarnFilesManager.maybeMapLocalYarnLinkedPathToProjectPath,
     path => path.split(sep).join('/')
   )
 
@@ -144,30 +133,18 @@ const watchAndSendChanges = async (
 const performInitialLink = async (
   appId: string,
   builder: Builder,
-  extraData: { linkConfig: LinkConfig },
+  extraData: { yarnFilesManager: YarnFilesManager },
   unsafe: boolean
 ): Promise<void> => {
-  const linkConfig = await createLinkConfig(root)
-
-  extraData.linkConfig = linkConfig
-
-  const usedDeps = toPairs(linkConfig.metadata)
-  if (usedDeps.length) {
-    const plural = usedDeps.length > 1
-    log.info(`The following local dependenc${plural ? 'ies are' : 'y is'} linked to your app:`)
-    usedDeps.forEach(([dep, path]) => log.info(`${dep} (from: ${path})`))
-    log.info(
-      `If you don\'t want ${plural ? 'them' : 'it'} to be used by your vtex app, please unlink ${
-        plural ? 'them' : 'it'
-      }`
-    )
-  }
+  const yarnFilesManager = await YarnFilesManager.createFilesManager(root)
+  extraData.yarnFilesManager = yarnFilesManager
+  yarnFilesManager.logSymlinkedDependencies()
 
   const linkApp = async (bail: any, tryCount: number) => {
     // wrapper for builder.linkApp to be used with the retry function below.
     const [localFiles, linkedFiles] = await Promise.all([
       listLocalFiles(root).then(paths => map(pathToFileObject(root), paths)),
-      getLinkedFiles(linkConfig),
+      yarnFilesManager.getYarnLinkedFiles(),
     ])
     const filesWithContent = concat(localFiles, linkedFiles) as BatchStream[]
 
@@ -282,7 +259,7 @@ export default async options => {
   log.info(`Linking app ${appId}`)
 
   let unlistenBuild
-  const extraData = { linkConfig: null }
+  const extraData = { yarnFilesManager: null }
   try {
     const buildTrigger = performInitialLink.bind(this, appId, builder, extraData, unsafe)
     const [subject] = appId.split('@')
