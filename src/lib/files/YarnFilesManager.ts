@@ -53,7 +53,7 @@ export class YarnFilesManager {
     if (npmModulesFiles.length > 0) {
       npmModulesFiles.push({
         path: join('.linked_deps', '.config'),
-        content: jsonToStream(this.linkConfig),
+        content: jsonToStream(this.linkConfig.toJson()),
       } as BatchStream)
     }
 

@@ -49,6 +49,13 @@ export class YarnSymlinkedModulesConfig {
     }
   }
 
+  public toJson() {
+    return {
+      metadata: this.metadata,
+      graph: this.graph
+    }
+  }
+
   private async discoverDependencies(currentModule: string, projectSrc: string): Promise<string[]> {
     const path = currentModule in this._metadata ? this._metadata[currentModule] : join(projectSrc, currentModule)
     const depsRoot = join(path, 'node_modules')
