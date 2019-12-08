@@ -48,7 +48,7 @@ export class YarnFilesManager {
 
     const npmModulesFiles = filesPerNpmModule.reduce((acc, moduleFiles) => {
       return acc.concat(...moduleFiles)
-    })
+    }, [])
 
     if (npmModulesFiles.length > 0) {
       npmModulesFiles.push({

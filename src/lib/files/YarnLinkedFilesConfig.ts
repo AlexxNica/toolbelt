@@ -108,7 +108,7 @@ export class YarnSymlinkedModulesConfig {
     }
   }
 
-  private addModuleMetadata([moduleName, path]): string {
+  private addModuleMetadata = ([moduleName, path]): string => {
     if (moduleName in this._metadata && this._metadata[moduleName] !== path) {
       log.warn(`Found ${moduleName} from two sources as linked dependencies. Ignoring the one from ${path}`)
     } else {
