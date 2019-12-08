@@ -2,7 +2,7 @@ import * as glob from 'globby'
 import { join } from 'path'
 import { PassThrough } from 'stream'
 import log from '../../logger'
-import { pathToFileObject, ProjectFilesManager } from './ProjectFilesManager'
+import { pathToFileObject } from './ProjectFilesManager'
 import { YarnSymlinkedModulesConfig } from './YarnLinkedFilesConfig'
 
 const jsonToStream = (json: any) => {
@@ -12,7 +12,7 @@ const jsonToStream = (json: any) => {
 }
 
 export class YarnFilesManager {
-  private static LINKED_YARN_MODULES_IGNORED_FILES = ProjectFilesManager.DEFAULT_IGNORED_FILES
+  private static LINKED_YARN_MODULES_IGNORED_FILES = ['.DS_Store', 'README.md', '.gitignore', 'CHANGELOG.md', 'node_modules/**', '**/node_modules/**']
 
   public static async createFilesManager(projectSrc: string) {
     const yarnLinkedModulesConfig = await YarnSymlinkedModulesConfig.createConfig(projectSrc)
@@ -28,7 +28,7 @@ export class YarnFilesManager {
     return files.map(pathToFileObject(path, join('.linked_deps', npmModule))) as BatchStream[]
   }
 
-  constructor(private linkConfig: YarnSymlinkedModulesConfig) {}
+  constructor(private linkConfig: YarnSymlinkedModulesConfig) { }
 
   get symlinkedDepsDirs() {
     return Object.values(this.linkConfig.metadata)
@@ -45,6 +45,10 @@ export class YarnFilesManager {
         return YarnFilesManager.getFiles(npmModule, this.linkConfig.metadata[npmModule])
       })
     )
+
+    filesPerNpmModule[0].forEach((el) => {
+      console.log(el.path)
+    })
 
     const npmModulesFiles = filesPerNpmModule.reduce((acc, moduleFiles) => {
       return acc.concat(...moduleFiles)
@@ -68,7 +72,7 @@ export class YarnFilesManager {
       linkedDeps.forEach(({ moduleName, path }) => log.info(`${moduleName} (from: ${path})`))
       log.info(
         `If you don\'t want ${plural ? 'them' : 'it'} to be used by your vtex app, please unlink ${
-          plural ? 'them' : 'it'
+        plural ? 'them' : 'it'
         }`
       )
     }

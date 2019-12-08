@@ -1,4 +1,4 @@
-import { lstat, readFileSync, createReadStream } from 'fs-extra'
+import { createReadStream, lstat, readFileSync } from 'fs-extra'
 import * as glob from 'globby'
 import { join } from 'path'
 import { reject } from 'ramda'
@@ -10,18 +10,8 @@ export const pathToFileObject = (root: string, prefix: string = '') => {
   })
 }
 
-const DEFAULT_IGNORED_FILES = [
-  '.DS_Store',
-  'README.md',
-  '.gitignore',
-  'package.json',
-  'node_modules/**',
-  '**/node_modules/**',
-  '.git/**',
-]
-
 export class ProjectFilesManager {
-  public static DEFAULT_IGNORED_FILES = DEFAULT_IGNORED_FILES
+  public static DEFAULT_IGNORED_FILES = ['.DS_Store', 'README.md', '.gitignore', 'package.json', 'node_modules/**', '**/node_modules/**', '.git/**',]
 
   private static isTestOrMockPath = (path: string) => {
     return /.*(test|mock|snapshot).*/.test(path.toLowerCase())
