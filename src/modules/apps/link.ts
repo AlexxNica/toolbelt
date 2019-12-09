@@ -21,7 +21,14 @@ import { default as setup } from '../setup'
 import { fixPinnedDependencies, formatNano } from '../utils'
 import { runYarnIfPathExists } from '../utils'
 import startDebuggerTunnel from './debugger'
-import { createLinkConfig, getIgnoredPaths, getLinkedDepsDirs, getLinkedFiles, listLocalFiles } from './file'
+import {
+  createLinkConfig,
+  getIgnoredPaths,
+  getLinkedDepsDirs,
+  getLinkedFiles,
+  listLocalFiles,
+  sumFileSizes,
+} from './file'
 import { checkBuilderHubMessage, pathToFileObject, showBuilderHubMessage, validateAppAction } from './utils'
 
 const root = getAppRoot()
@@ -173,7 +180,11 @@ const performInitialLink = async (
 
     if (tryCount === 1) {
       const linkedFilesInfo = linkedFiles.length ? `(${linkedFiles.length} from linked node modules)` : ''
-      log.info(`Sending ${filesWithContent.length} file${filesWithContent.length > 1 ? 's' : ''} ${linkedFilesInfo}`)
+      log.info(
+        `Sending ${filesWithContent.length} file${
+          filesWithContent.length > 1 ? 's' : ''
+        } ${linkedFilesInfo} totalizing ${await sumFileSizes(filesWithContent)} MB`
+      )
       log.debug('Sending files')
       filesWithContent.forEach(p => log.debug(p.path))
     }

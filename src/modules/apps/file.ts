@@ -23,6 +23,12 @@ const defaultIgnored = [
 
 const services = ['react', 'render', 'masterdata', 'service']
 
+export type SizeInBytes = number
+export const sumFileSizes = async (files: BatchStream[]): Promise<SizeInBytes> => {
+  const totalSizeInBytes = files.reduce((acum, el) => acum + el.size, 0)
+  return totalSizeInBytes
+}
+
 const safeFolder = folder => {
   if (folder && services.indexOf(folder) === -1) {
     log.warn('Using unknown service', folder)
@@ -126,9 +132,10 @@ export async function getLinkedFiles(linkConfig: LinkConfig): Promise<BatchStrea
 
 function jsonToStream(path: string, linkConfig: LinkConfig): BatchStream {
   const stream = new Readable()
-  stream.push(JSON.stringify(linkConfig))
+  const jsonString = JSON.stringify(linkConfig)
+  stream.push(jsonString)
   stream.push(null) // EOF
-  return { path, content: stream }
+  return { path, content: stream, size: Buffer.byteLength(jsonString) }
 }
 
 export function getLinkedDepsDirs(linkConfig: LinkConfig): string[] {

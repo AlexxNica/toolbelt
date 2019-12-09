@@ -1,5 +1,6 @@
 import { AppManifest } from '@vtex/api'
 import { Readable } from 'stream'
+import { SizeInBytes } from '../modules/apps/file'
 
 declare global {
   interface Change {
@@ -15,6 +16,7 @@ declare global {
   interface BatchStream {
     path: string
     content: NodeJS.ReadableStream
+    size: SizeInBytes
   }
 
   type Manifest = AppManifest
