@@ -85,7 +85,7 @@ export class YarnFilesManager {
     }
   }
 
-  public maybeMapLocalYarnLinkedPathToProjectPath(absolutePath: string) {
+  public maybeMapLocalYarnLinkedPathToProjectPath = (absolutePath: string) => {
     const linkedModules = this.yarnLinkedDependencies
     for (const moduleInfo of linkedModules) {
       if (absolutePath.startsWith(moduleInfo.path)) {
