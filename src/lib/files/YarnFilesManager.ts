@@ -1,5 +1,5 @@
 import * as glob from 'globby'
-import { join } from 'path'
+import { join, resolve } from 'path'
 import { PassThrough } from 'stream'
 import log from '../../logger'
 import { pathToFileObject } from './ProjectFilesManager'
@@ -85,7 +85,8 @@ export class YarnFilesManager {
     }
   }
 
-  public maybeMapLocalYarnLinkedPathToProjectPath = (absolutePath: string) => {
+  public maybeMapLocalYarnLinkedPathToProjectPath = (path: string, projectPath: string) => {
+    const absolutePath = resolve(projectPath, path)
     const linkedModules = this.yarnLinkedDependencies
     for (const moduleInfo of linkedModules) {
       if (absolutePath.startsWith(moduleInfo.path)) {

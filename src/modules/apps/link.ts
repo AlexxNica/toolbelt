@@ -95,13 +95,15 @@ const watchAndSendChanges = async (
       .catch(onInitialLinkRequired)
   }, 1000)
 
-  const pathToChange = (path: string, remove?: boolean): Change => ({
-    content: remove ? null : readFileSync(resolvePath(root, path)).toString('base64'),
-    path: pathModifier(path),
-  })
+  const pathToChange = (path: string, remove?: boolean): Change => {
+    return {
+      content: remove ? null : readFileSync(resolvePath(root, path)).toString('base64'),
+      path: pathModifier(path),
+    }
+  }
 
   const pathModifier = pipe(
-    yarnFilesManager.maybeMapLocalYarnLinkedPathToProjectPath,
+    (path: string) => yarnFilesManager.maybeMapLocalYarnLinkedPathToProjectPath(path, root),
     path => path.split(sep).join('/')
   )
 
