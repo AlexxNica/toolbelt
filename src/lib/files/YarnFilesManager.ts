@@ -29,7 +29,7 @@ export class YarnFilesManager {
   private static async getFiles(npmModule: string, path: string) {
     const files = await glob(['**'], {
       cwd: path,
-      ignore: this.LINKED_YARN_MODULES_IGNORED_FILES,
+      ignore: YarnFilesManager.LINKED_YARN_MODULES_IGNORED_FILES,
       nodir: true,
     })
     return files.map(pathToFileObject(path, join('.linked_deps', npmModule))) as BatchStream[]
