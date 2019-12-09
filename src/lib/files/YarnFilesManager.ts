@@ -12,7 +12,14 @@ const jsonToStream = (json: any) => {
 }
 
 export class YarnFilesManager {
-  private static LINKED_YARN_MODULES_IGNORED_FILES = ['.DS_Store', 'README.md', '.gitignore', 'CHANGELOG.md', 'node_modules/**', '**/node_modules/**']
+  private static LINKED_YARN_MODULES_IGNORED_FILES = [
+    '.DS_Store',
+    'README.md',
+    '.gitignore',
+    'CHANGELOG.md',
+    'node_modules/**',
+    '**/node_modules/**',
+  ]
 
   public static async createFilesManager(projectSrc: string) {
     const yarnLinkedModulesConfig = await YarnSymlinkedModulesConfig.createConfig(projectSrc)
@@ -28,7 +35,7 @@ export class YarnFilesManager {
     return files.map(pathToFileObject(path, join('.linked_deps', npmModule))) as BatchStream[]
   }
 
-  constructor(private linkConfig: YarnSymlinkedModulesConfig) { }
+  constructor(private linkConfig: YarnSymlinkedModulesConfig) {}
 
   get symlinkedDepsDirs() {
     return Object.values(this.linkConfig.metadata)
@@ -46,7 +53,7 @@ export class YarnFilesManager {
       })
     )
 
-    filesPerNpmModule[0].forEach((el) => {
+    filesPerNpmModule[0].forEach(el => {
       console.log(el.path)
     })
 
@@ -72,7 +79,7 @@ export class YarnFilesManager {
       linkedDeps.forEach(({ moduleName, path }) => log.info(`${moduleName} (from: ${path})`))
       log.info(
         `If you don\'t want ${plural ? 'them' : 'it'} to be used by your vtex app, please unlink ${
-        plural ? 'them' : 'it'
+          plural ? 'them' : 'it'
         }`
       )
     }

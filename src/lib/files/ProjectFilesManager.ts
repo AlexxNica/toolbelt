@@ -11,7 +11,15 @@ export const pathToFileObject = (root: string, prefix: string = '') => {
 }
 
 export class ProjectFilesManager {
-  public static DEFAULT_IGNORED_FILES = ['.DS_Store', 'README.md', '.gitignore', 'package.json', 'node_modules/**', '**/node_modules/**', '.git/**',]
+  public static DEFAULT_IGNORED_FILES = [
+    '.DS_Store',
+    'README.md',
+    '.gitignore',
+    'package.json',
+    'node_modules/**',
+    '**/node_modules/**',
+    '.git/**',
+  ]
 
   private static isTestOrMockPath = (path: string) => {
     return /.*(test|mock|snapshot).*/.test(path.toLowerCase())

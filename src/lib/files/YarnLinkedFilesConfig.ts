@@ -52,7 +52,7 @@ export class YarnSymlinkedModulesConfig {
   public toJson() {
     return {
       metadata: this.metadata,
-      graph: this.graph
+      graph: this.graph,
     }
   }
 
