@@ -13,7 +13,7 @@ import { getAccount, getEnvironment, getWorkspace } from '../../conf'
 import { CommandError } from '../../errors'
 import { toAppLocator } from '../../locator'
 import log from '../../logger'
-import { getAppRoot, getManifest, writeManifestSchema } from '../../manifest'
+import { getAppRoot } from '../../manifest'
 import { listenBuild } from '../build'
 import { default as setup } from '../setup'
 import { fixPinnedDependencies, formatNano, runYarnIfPathExists } from '../utils'
@@ -222,9 +222,9 @@ const performInitialLink = async (
 export default async options => {
   await validateAppAction('link')
   const unsafe = !!(options.unsafe || options.u)
-  const manifest = await getManifest()
+  const manifest = new ManifestEditor()
   try {
-    await writeManifestSchema()
+    await manifest.writeSchema()
   } catch (e) {
     log.debug('Failed to write schema on manifest.')
   }

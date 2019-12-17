@@ -7,7 +7,7 @@ import { getAccount, getEnvironment, getWorkspace } from '../../conf'
 import { CommandError } from '../../errors'
 import { toAppLocator } from '../../locator'
 import log from '../../logger'
-import { getAppRoot, getManifest, writeManifestSchema } from '../../manifest'
+import { getAppRoot } from '../../manifest'
 import { listenBuild } from '../build'
 import { fixPinnedDependencies, runYarnIfPathExists } from '../utils'
 import { createLinkConfig, getLinkedFiles, listLocalFiles } from './file'
@@ -89,12 +89,7 @@ const performTest = async (
 export default async options => {
   await validateAppAction('test')
   const unsafe = !!(options.unsafe || options.u)
-  const manifest = await getManifest()
-  try {
-    await writeManifestSchema()
-  } catch (e) {
-    log.debug('Failed to write schema on manifest.')
-  }
+  const manifest = new ManifestEditor()
 
   const appId = toAppLocator(manifest)
   const context = { account: getAccount(), workspace: getWorkspace(), environment: getEnvironment() }
