@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Changed
 - Add URL to changelog on update notification
 
+## [2.81.4] - 2019-12-23
+### Added
+- Add message regarding publish process changes when trying to publish
+
 ## [2.81.3] - 2019-12-23
 ### Refactor
 - Refactor `vtex deprecate`, `vtex undeprecate`, `vtex publish`
